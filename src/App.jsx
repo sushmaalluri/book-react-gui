@@ -16,7 +16,7 @@ function App() {
 
   const [actionMessage, setActionMessage] = useState({ text: '', type: '' });
 
-  const API_BASE_URL = 'http://localhost:8080/books';
+  const API_BASE_URL = 'https://main.d2g9agxs9vcs8l.amplifyapp.com';
 
   // --- Function to fetch all books ---
   const fetchBooks = async () => {
