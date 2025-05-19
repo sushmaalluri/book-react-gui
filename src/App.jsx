@@ -16,7 +16,7 @@ function App() {
 
   const [actionMessage, setActionMessage] = useState({ text: '', type: '' });
 
-  const API_BASE_URL = '*';
+  const API_BASE_URL = 'https://book-api-server-1.onrender.com';
 
   // --- Function to fetch all books ---
   const fetchBooks = async () => {
