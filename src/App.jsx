@@ -23,7 +23,7 @@ function App() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${API_BASE_URL}/books`);
+      const response = await fetch(`${API_BASE_URL}books`);
       if (!response.ok) {
         if (response.status === 204) setBooks([]);
         else throw new Error(`HTTP error fetching books! Status: ${response.status}`);
