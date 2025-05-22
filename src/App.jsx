@@ -16,20 +16,44 @@ function App() {
 
   const [actionMessage, setActionMessage] = useState({ text: '', type: '' });
 
-  const API_BASE_URL = 'https://book-api-server-1.onrender.com';
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
   // --- Function to fetch all books ---
   const fetchBooks = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(API_BASE_URL);
+      console.log('Attempting to fetch books from:', API_BASE_URL+'/books');
+      const response = await fetch(API_BASE_URL+'/books', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        mode: 'cors', // Explicitly set CORS mode
+      });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      
       if (!response.ok) {
-        if (response.status === 204) setBooks([]);
-        else throw new Error(`HTTP error fetching books! Status: ${response.status}`);
+        if (response.status === 204) {
+          console.log('No content (204) received');
+          setBooks([]);
+        } else {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          throw new Error(`HTTP error fetching books! Status: ${response.status}, Response: ${errorText}`);
+        }
       } else {
-        if (response.headers.get("content-length") === "0" || response.status === 204) setBooks([]);
-        else setBooks(await response.json());
+        if (response.headers.get("content-length") === "0" || response.status === 204) {
+          console.log('Empty response received');
+          setBooks([]);
+        } else {
+          const data = await response.json();
+          console.log('Received books data:', data);
+          setBooks(data);
+        }
       }
     } catch (err) {
       console.error("Failed to fetch books:", err);
@@ -82,7 +106,7 @@ function App() {
          return;
       }
       try {
-        const response = await fetch(`${API_BASE_URL}/${editingBook.isbn}`, { // Use original ISBN for endpoint
+        const response = await fetch(`${API_BASE_URL}/books/${editingBook.isbn}`, { // Use original ISBN for endpoint
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(bookData), // Send updated data, including potentially "changed" ISBN if your API supports it
@@ -102,7 +126,7 @@ function App() {
       }
     } else { // ---- ADD Book ----
       try {
-        const response = await fetch(API_BASE_URL, {
+        const response = await fetch(`${API_BASE_URL}/books`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(bookData),
@@ -128,7 +152,7 @@ function App() {
     setActionMessage({ text: '', type: '' });
     if (window.confirm(`Are you sure you want to delete "${bookTitle}" (ISBN: ${bookIsbn})?`)) {
       try {
-        const response = await fetch(`${API_BASE_URL}/${bookIsbn}`, { method: 'DELETE' });
+        const response = await fetch(`${API_BASE_URL}/books/${bookIsbn}`, { method: 'DELETE' });
         if (!response.ok && response.status !== 204) { // 204 is success for delete
           let errorMessage = `HTTP error deleting book! Status: ${response.status}`;
           try { const errorData = await response.json(); errorMessage = errorData.message || errorData.error || `Server error: ${response.statusText}`; }
